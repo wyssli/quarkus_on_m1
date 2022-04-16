@@ -15,9 +15,9 @@ When it took me 10 minutes to do step 2 of the tutorial: "You need a a JDK 11+ (
 - most importantly I want everything to be native M1
 - I love brew, because I think it's a great way to get a reproducable install on an other machine and have an orderly way for updating your packages
 - however I'm a minimalist and a pracgatic mind. 
-  - The first one prevents me from creating brew packages (I'm sop not interessted in doing this that I don't even know if it is actually called a 'package') 
+  - The first one prevents me from creating brew packages (I'm so not interessted in doing this that I don't even know if it is actually called a 'package') 
   - The second one makes me belive that for example intelliJ is better installed directly from JetBrains as it has it's own update mechanism built in and I fear that this will cause trouble with brew
-  - as the last point shows I don't have to know things for certain, a lot of times I follow my 30+ years experience with computers
+  - as the last point shows I don't have to know things for certain, a lot of times I follow my intuition of 30+ years experience with computers
   - as the last point shows: I try to be as honest as possible and therefore:
 
 > ***DISCLAIMER***
@@ -25,13 +25,13 @@ When it took me 10 minutes to do step 2 of the tutorial: "You need a a JDK 11+ (
 > - If you follow this guide you are responsible for all that happens
 > - Don't switch off your mind
 > - I promise that I also document things that did not work *on my installation*
-> - all information is too my best knowledge. if you find any errors please open an Issue on githu
+> - all information is too my best knowledge. if you find any errors please open an Issue on this github project
 > - if I write "M1" I actually mean "Apple Silicon"
 
 # Preconditions
 1. `brew` (The Missing Package Manager for macOS) https://brew.sh
 2. an IDE of you choice (e.g. there is a M1 dmg on https://www.jetbrains.com/idea/download/#section=mac)
-3. ***very important*** iI assume there is no Java installed on your machine
+3. ***very important*** I assume there is no Java installed on your machine
 4. knowledge on Java and how to handle your IDE and zsh in a `Terminal`
 5. a directory "Development" in your home (`cd` and `mkdir Development`)
 
@@ -39,10 +39,39 @@ When it took me 10 minutes to do step 2 of the tutorial: "You need a a JDK 11+ (
 As said above: it is a precondition that you already have one. If not and you are lost: get IntelliJ (see above)
 
 # Step 2: "You need a a JDK 11+ (any distribution)"
+
+Update from 2022.04.15: 
+
+Everything got more complicated ;-)
+
+On the one hand I joined a workshop by Galder Zamarreño with the following prerequisites:
+https://github.com/galderz/quarkus-native-workshop#prerequisites-for-the-workshop
+implying it would be preferable to have a JDK11
+
+On the other hand I saw that a brew cask for zulu is now existing and supporting the M1
+So I would now probably consider to use brew to install azul/zulu. However I did not check if this will correctly setup JAVA_HOME and  
+```
+brew install --cask zulu
+```
+
+And last but not least: Oracle now has native M1 JDKs for Java 17 and 18. And there is even a brew cask for the latest (Java 18): 
+```
+brew install --cask oracle-jdk
+```
+What would I do now? 
+
+Honestly: I don't know. Really. 
+Probably I'd go for the oracle-jdk 17 (after uninstalling all previously installed java versions) 
+
+What _did_ I do? I stayed on the Zulu 17.30.15 for now as this was working. I try to get the nativ builds running first and then decide.
+
+---
+*CAUTION: outdated but a save fallback - see above*
 The situation on 2021.11.26 is that there is currently no M1 native JVM from Oracle (HotSpot) or from Eclipse (OpenJ9). If there was one I would take one of them, probably OpenJ9. But thanks to the nice people at azul.com we have a solution:
 
 Zulu: 17.30.15
 https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk
+(open link and scroll down to "Download Azul Zulu Builds of OpenJDK")
 
 - Download the DMG Installer (trust me on this one, like this java will be on the path and it will be like this even if brew installs an additional java)
 - use `Finder` to move it from the Downloads directory to an other directory (e.g. a directory in your home directory)
@@ -55,40 +84,45 @@ shasum -a 256 zulu17.30.15-ca-jdk17.0.1-macosx_aarch64.dmg
 - follow the instructions to install azul
 - on the `Temrinal` check if the right java is on the path:
 ```
-$ java --version
+java --version
 openjdk 17.0.1 2021-10-19 LTS
 OpenJDK Runtime Environment Zulu17.30+15-CA (build 17.0.1+12-LTS)
 OpenJDK 64-Bit Server VM Zulu17.30+15-CA (build 17.0.1+12-LTS, mixed mode, sharing)
 ```
 
+Note: I'm in for the newest LTS so I take the newest version of Java 17 (LTS) but you could also take 18, 15, 13 or 11 LTS.
 
-Note: I'm in for the newest so I take the newest version of Java 17 (LTS) and you could also take 15, 13 or 11 LTS.
+---
 
 # Step 2b: "Optionally get GraalVM 21.3.0 for native compilation"
-[TBD] currently there is no M1 version, from other comments on the net I guess the AMD64 will run.
+[TBD] 
+Update: on 2022.03.22 M1 Support fo the GraalVM landed
+https://github.com/oracle/graal/issues/2666
+Installation see https://www.graalvm.org/22.0/docs/getting-started/macos/
 
 # Step 3: "You need Apache Maven 3.8.1+ or Gradle"
 I'll go with maven
-```    $ brew install maven 
+```
+brew install maven 
 ```
 
 Note: this will install an additional `openjdk` (I asume it's a AMD64 Version) and we have to make sure that maven doesn't take this:
 - on the `Temrinal` set JAVA_HOME to azul:
 ```
-➜  ~ nano ~/.zshenv
+nano ~/.zshenv
 ```
 - add the following content `export JAVA_HOME=$(/usr/libexec/java_home)` and press control-o and control-x to write and exit.
 - source the file and check $JAVA_HOME
 ```
-➜  ~ source ~/.zshenv
+source ~/.zshenv
 
-➜  ~ echo $JAVA_HOME 
+echo $JAVA_HOME 
 /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
 
 ```
 - on the `Temrinal` check if maven uses the right java:
 ```
-$ mvn --version
+mvn --version
 Apache Maven 3.8.4 (9b656c72d54e5bacbed989b64718c159fe39b537)
 Maven home: /opt/homebrew/Cellar/maven/3.8.4/libexec
 Java version: 17.0.1, vendor: Azul Systems, Inc., runtime: /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
@@ -104,11 +138,11 @@ You can follow from the beginning but I jump to paragraph 4
 ## 4 Bootstrapping the project
 - on the `Terminal` create the tutorial project
 ```
-➜  ~ cd
-➜  ~ cd Development 
-➜  Development mkdir quarkus_tutorials
-➜  Development cd quarkus_tutorials 
-➜  quarkus_tutorials mvn io.quarkus.platform:quarkus-maven-plugin:2.5.0.Final:create \
+cd
+cd Development 
+mkdir quarkus_tutorials
+cd quarkus_tutorials 
+mvn io.quarkus.platform:quarkus-maven-plugin:2.5.0.Final:create \
     -DprojectGroupId=org.acme \
     -DprojectArtifactId=getting-started \
     -DclassName="org.acme.getting.started.GreetingResource" \
@@ -122,17 +156,17 @@ Downloading from central: https://rep
 [INFO] Total time:  16.161 s
 [INFO] Finished at: 2021-11-26T23:43:09+01:00
 [INFO] ------------------------------------------------------------------------
-➜  quarkus_tutorials cd getting-started 
 ```
 ## 5 Running the application
 - build and run the project in dev mode
 ```
-➜  getting-started ./mvnw compile quarkus:dev
+cd getting-started 
+./mvnw compile quarkus:dev
 ```
 - press `r`vto run the tests
 - open a second `Terminal` window and test if the REST endpoint is working:
 ```
-➜  ~ curl -w "\n" http://localhost:8080/hello
+curl -w "\n" http://localhost:8080/hello
 Hello RESTEasy
 ```
 - yippee-ki-yay it's working (see https://theweek.com/articles/462065/brief-history-yippeekiyay)
